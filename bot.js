@@ -34,6 +34,19 @@ bot.on('chat', (username, message) => {
       if (isItemActivated) resetInterval(); // Restart the interval with the new delay if the autoclicker is on
     } else if (command[1] === "status") {
       displayBotStatus(); // Call the function to display the bot status
+    } else if (command[1] === "moveto" && command.length === 7) {
+      const x = parseFloat(command[2]);
+      const y = parseFloat(command[3]);
+      const z = parseFloat(command[4]);
+      const yaw = parseFloat(command[5]);
+      const pitch = parseFloat(command[6]);
+      if (!isNaN(x) && !isNaN(y) && !isNaN(z) && !isNaN(yaw) && !isNaN(pitch)) {
+        moveToCoordinates(x, y, z, yaw, pitch);
+      } else {
+        bot.chat("Invalid coordinates or angles provided.");
+      }
+    }else{
+      bot.chat("Invalid command.");
     }
   }
 });
@@ -81,6 +94,20 @@ function resetInterval() {
 function displayBotStatus() {
   bot.chat(`Current Status:\nHealth - ${bot.health}\nFood - ${bot.food}\nItem Activation - ${isItemActivated ? 'ON' : 'OFF'}`);
 }
+
+function moveToCoordinates(x, y, z, yaw, pitch) {
+  bot.chat(`Moving to coordinates: X=${x}, Y=${y}, Z=${z}, Yaw=${yaw}, Pitch=${pitch}`);
+
+  // Set the bot's yaw and pitch
+  bot.look(yaw, pitch, true);
+
+  // Add your logic to move the bot to the specified coordinates
+  // For example, you can use bot.pathfinder to navigate to the target location.
+  bot.pathfinder.setMovements(require('mineflayer-pathfinder').Movements(bot));
+  const goal = new mineflayer.pathfinder.goals.GoalNear(x, y, z, 1); // adjust the threshold as needed
+  bot.pathfinder.setGoal(goal);
+}
+
 
 bot.on('kicked', console.log);
 bot.on('error', console.log);
