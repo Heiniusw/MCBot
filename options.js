@@ -1,4 +1,4 @@
-module.exprots = {
+module.exports = {
     host: 'mcusw.de',
     port: 25565,
     auth: 'microsoft',

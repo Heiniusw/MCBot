@@ -14,7 +14,7 @@ const bot = mineflayer.createBot(options);
 bot.on('chat', (username, message) => {
   if (username === bot.username) return;
   if (!whitelist.has(username)){
-    bot.chat("You are not Whitelisted!");
+    bot.chat(`You are not Whitelisted $(username)!`);
     return
   }
   let command = message.split(" ");
