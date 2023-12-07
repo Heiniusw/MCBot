@@ -1,15 +1,22 @@
+const fs = require('fs');
+const path = require('path');
 const mineflayer = require('mineflayer');
 const options = require('./options');
 
-const bot = mineflayer.createBot(options);
+const filePath = 'whitelist.json'
 let isItemActivated = false; // Flag to track item activation state
 let intervalDelay = 2000; // Initial interval delay in milliseconds
 let intervalId; // Variable to store the interval ID
+const whitelist = new Set();
+loadWhitelistFromFile();
+const bot = mineflayer.createBot(options);
 
 bot.on('chat', (username, message) => {
   if (username === bot.username) return;
-
-  bot.chat(message);
+  if (!whitelist.has(username)){
+    bot.chat("You are not Whitelisted!");
+    return
+  }
   let command = message.split(" ");
 
   if (command[0] === bot.username) {
@@ -45,11 +52,51 @@ bot.on('chat', (username, message) => {
       } else {
         bot.chat("Invalid coordinates or angles provided.");
       }
+    } else if (command[1] === "whitelist" && command.length === 4) {
+      handleWhitelistCommand(username, command[2], command[3]);
     }else{
       bot.chat("Invalid command.");
     }
   }
 });
+
+function handleWhitelistCommand(requester, action, player) {
+  if (action === "add") {
+    whitelist.add(player);
+    saveWhitelistToFile();
+    bot.chat(`Player ${player} has been added to the whitelist by ${requester}.`);
+  } else if (action === "remove") {
+    whitelist.delete(player);
+    saveWhitelistToFile();
+    bot.chat(`Player ${player} has been removed from the whitelist by ${requester}.`);
+  } else {
+    bot.chat("Invalid whitelist action. Use 'add' or 'remove'.");
+  }
+}
+
+function loadWhitelistFromFile() {
+  try {
+    const data = fs.readFileSync(filePath, 'utf8');
+    const loadedWhitelist = JSON.parse(data);
+    loadedWhitelist.forEach(player => whitelist.add(player));
+    console.log('Whitelist loaded from file.');
+  } catch (error) {
+    console.log('Whitelist file not found. Creating a new one.');
+    saveWhitelistToFile()
+  }
+}
+
+function saveWhitelistToFile() {
+  const whitelistArray = Array.from(whitelist);
+
+  try {
+    const data = JSON.stringify(whitelistArray, null, 2);
+    fs.writeFileSync(filePath, data, 'utf8');
+    console.log('Whitelist saved to file.');
+  } catch (error) {
+    console.error('Error saving whitelist to file:', error.message);
+  }
+}
 
 bot.on('health', () => {
   const foodLevel = bot.food;
