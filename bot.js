@@ -17,7 +17,7 @@ bot.on('chat', (username, message) => {
     bot.chat(`You are not Whitelisted $(username)!`);
     return
   }
-  let command = message.toLocaleLowerCase().split(" ");
+  let command = message.split(" ");
 
   if (command[0] === bot.username) {
     bot.chat("This message was for me!");
