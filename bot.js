@@ -4,9 +4,9 @@ const mineflayer = require('mineflayer');
 const options = require('./options');
 
 const filePath = 'whitelist.json'
-let isItemActivated = false; // Flag to track item activation state
-let intervalDelay = 2000; // Initial interval delay in milliseconds
-let intervalId; // Variable to store the interval ID
+let isItemActivated = false;
+let intervalDelay = 1500;
+let intervalId;
 const whitelist = new Set();
 loadWhitelistFromFile();
 const bot = mineflayer.createBot(options);
@@ -17,30 +17,28 @@ bot.on('chat', (username, message) => {
     bot.chat(`You are not Whitelisted $(username)!`);
     return
   }
-  let command = message.split(" ");
+  let command = message.toLocaleLowerCase().split(" ");
 
   if (command[0] === bot.username) {
     bot.chat("This message was for me!");
 
-    // Check for the command to toggle item activation
-    if (command[1] === "toggleItemActivation") {
-      isItemActivated = !isItemActivated; // Toggle the state
+    if (command[1] === "toggleac") {
+      isItemActivated = !isItemActivated;
 
       if (isItemActivated) {
-        bot.chat("Item activation is now ON.");
-        resetInterval(); // Start the interval when the autoclicker is turned on
+        bot.chat(`Item activation is now ON (${intervalDelay} ms)`);
+        resetInterval();
       } else {
-        bot.chat("Item activation is now OFF.");
-        clearInterval(intervalId); // Clear the interval when the autoclicker is turned off
-        // Add your logic to deactivate the item here
+        bot.chat("Item activation is now OFF");
+        clearInterval(intervalId);
       }
-    } else if (command[1] === "setInterval") {
+    } else if (command[1] === "setinterval") {
       const newDelay = parseInt(command[2]);
       intervalDelay = !isNaN(newDelay) ? newDelay : intervalDelay;
-      bot.chat(`Interval delay set to ${intervalDelay} milliseconds.`);
-      if (isItemActivated) resetInterval(); // Restart the interval with the new delay if the autoclicker is on
+      bot.chat(`Interval delay set to ${intervalDelay} ms.`);
+      if (isItemActivated) resetInterval();
     } else if (command[1] === "status") {
-      displayBotStatus(); // Call the function to display the bot status
+      displayBotStatus();
     } else if (command[1] === "moveto" && command.length === 7) {
       const x = parseFloat(command[2]);
       const y = parseFloat(command[3]);
@@ -55,7 +53,8 @@ bot.on('chat', (username, message) => {
     } else if (command[1] === "whitelist" && command.length === 4) {
       handleWhitelistCommand(username, command[2], command[3]);
     }else{
-      bot.chat("Invalid command.");
+      bot.chat("Invalid command\n");
+      printHelp();
     }
   }
 });
@@ -100,26 +99,20 @@ function saveWhitelistToFile() {
 
 bot.on('health', () => {
   const foodLevel = bot.food;
-
-  // Check if the bot needs to eat
   if (foodLevel < 20) {
     bot.chat("Low on food. Eating...");
-    // Add your logic to eat here
     bot.equip(bot.inventory.itemsByName['bread'], 'hand');
     bot.activateItem();
   }
 });
 
 bot.once('spawn', () => {
-  // Customize the behavior here
 });
 
 function activateSpecificItem(itemName) {
   const targetItem = bot.inventory.items().find((item) => item.name === itemName);
   if (targetItem) {
-    // Select the item
     bot.equip(targetItem, 'hand', () => {
-      // Activate the item once it's equipped
       bot.activateItem();
     });
   } else {
@@ -128,10 +121,8 @@ function activateSpecificItem(itemName) {
 }
 
 function resetInterval() {
-  // Clear the existing interval and start a new one with the updated delay
   clearInterval(intervalId);
   intervalId = setInterval(() => {
-    // Execute action based on the updated interval delay
     if (isItemActivated) {
       activateSpecificItem('minecraft:diamond_sword');
     }
@@ -145,14 +136,15 @@ function displayBotStatus() {
 function moveToCoordinates(x, y, z, yaw, pitch) {
   bot.chat(`Moving to coordinates: X=${x}, Y=${y}, Z=${z}, Yaw=${yaw}, Pitch=${pitch}`);
 
-  // Set the bot's yaw and pitch
   bot.look(yaw, pitch, true);
 
-  // Add your logic to move the bot to the specified coordinates
-  // For example, you can use bot.pathfinder to navigate to the target location.
   bot.pathfinder.setMovements(require('mineflayer-pathfinder').Movements(bot));
-  const goal = new mineflayer.pathfinder.goals.GoalNear(x, y, z, 1); // adjust the threshold as needed
+  const goal = new mineflayer.pathfinder.goals.GoalNear(x, y, z, 1);
   bot.pathfinder.setGoal(goal);
+}
+
+function printHelp(){
+  bot.chat("Commands:\ntoggleac\nsetInterval ms\nstatus\nmoveto\nwhitelist add|remove username\n-----------");
 }
 
 
