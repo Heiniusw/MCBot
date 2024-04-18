@@ -29,7 +29,8 @@ let isItemActivated = false;
 let intervalDelay = 1500;
 let intervalId;
 let lastHealth = bot.health;
-let swordNotFoundTrys = 0;
+let swordNotFoundTries = 0;
+let maxSwordNotFoundTries = 30;
 
 function saveWhitelistToFile() {
   const whitelistArray = Array.from(whitelist);
@@ -72,7 +73,7 @@ function handleWhitelistCommand(requester, action, player) {
 function activateSpecificItem(itemName) {
   const targetItem = bot.inventory.items().find((item) => item.name === itemName);
   if (targetItem) {
-    swordNotFoundTrys = 0;
+    swordNotFoundTries = 0;
     bot.equip(targetItem, 'hand');
       const mobFilter = e => e.type === 'hostile';
       const mob = bot.nearestEntity(mobFilter);
@@ -80,10 +81,11 @@ function activateSpecificItem(itemName) {
       bot.lookAt(mob.position, true)
       bot.attack(mob);
   } else {
-    log(`I need this Item: ${itemName}`);
-    swordNotFoundTrys ++;
-    if (swordNotFoundTrys > 30){
-      bot.quit();
+    swordNotFoundTries ++;
+    log(`I need this Item: ${itemName} - ${swordNotFoundTries} Tries`);
+    if (swordNotFoundTries > maxSwordNotFoundTries){
+      log('To many Fails! Disconnecting from the server.')
+      process.exit()
     }
   }
 }
@@ -182,7 +184,7 @@ function handleCommand(command) {
 
   } else if (command[0] === "run") {
 
-    minecraftCommand = command.slice(2).join(" ");
+    minecraftCommand = command.slice(1).join(" ");
     bot.chat(`/${minecraftCommand}`)
 
   } else if (command[0] === "items") {
@@ -248,3 +250,4 @@ bot.on('spawn', () => {
   let lastHealth = bot.health;
   bot.autoEat.options.startAt = 19
 });
+
