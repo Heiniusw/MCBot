@@ -141,7 +141,7 @@ function log(message){
   bot.chat(message);
 }
 
-function handleCommand(command) {
+function handleCommand(command, issuer) {
   if (command[0] === "toggleac") {
 
     isItemActivated = !isItemActivated;
@@ -165,7 +165,7 @@ function handleCommand(command) {
 
     displayBotStatus();
 
-  } else if (command[0] === "moveto" && command.length === 7) {
+  } else if (command[0] === "moveto" && command.length === 6) {
 
     const x = parseFloat(command[1]);
     const y = parseFloat(command[2]);
@@ -178,9 +178,9 @@ function handleCommand(command) {
       log("Invalid coordinates or angles provided.");
     }
 
-  } else if (command[0] === "whitelist" && command.length === 4) {
+  } else if (command[0] === "whitelist" && command.length === 3) {
 
-    handleWhitelistCommand(username, command[1], command[2]);
+    handleWhitelistCommand(issuer, command[1], command[2]);
 
   } else if (command[0] === "run") {
 
@@ -204,7 +204,7 @@ function handleCommand(command) {
 }
 
 rl.on('line', (input) => {
-  handleCommand(input.trim().split(" "))
+  handleCommand(input.trim().split(" "), 'Console')
 });
 
 bot.on('chat', (username, message) => {
@@ -222,7 +222,7 @@ bot.on('chat', (username, message) => {
     return
   }
 
-  handleCommand(command);
+  handleCommand(command, username);
 });
 
 
@@ -249,5 +249,7 @@ bot.on('spawn', () => {
   // bot.chat('/server smp')
   let lastHealth = bot.health;
   bot.autoEat.options.startAt = 19
+
+  console.log('Connected to Server!')
 });
 
